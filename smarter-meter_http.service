@@ -1,0 +1,11 @@
+[Unit]
+Description=http server for smarter-meter
+
+[Service]
+Type=simple
+Restart=on-failure
+User=pi
+ExecStart=/bin/bash -c 'cd /home/pi/smarter-meter/log && python -m http.server'
+
+[Install]
+WantedBy=multi-user.target

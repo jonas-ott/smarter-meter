@@ -1,0 +1,11 @@
+[Unit]
+Description=Read power consumption with camera
+
+[Service]
+Type=simple
+Restart=on-failure
+User=pi
+ExecStart=/bin/bash -c 'cd /home/pi/smarter-meter && python log.py'
+
+[Install]
+WantedBy=multi-user.target
