@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
-import math
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import requests
 
 # Eine Umdrehung = 1/75 kWH
 TURN_INC = 1 / 75
+
+DAY_SECONDS = 24 * 60 * 60
 
 
 def parse():
@@ -52,7 +53,7 @@ def make_format(current, other):
         # convert back to data coords with respect to ax
         ax_coord = inv.transform(display_coord)
         return 'Leistung: {:.0f}W   Verbrauch: {:.2f}kWh   Zeit: {}' \
-            .format(ax_coord[1], y, datetime.utcfromtimestamp(x * 24 * 60 * 60).strftime('%H:%M:%S'))
+            .format(ax_coord[1], y, datetime.utcfromtimestamp(x * DAY_SECONDS).strftime('%H:%M:%S'))
 
     return format_coord
 
@@ -84,23 +85,27 @@ def plot():
                       valinit=(times[-1] - t_begin).days,
                       valstep=1 / 24)
 
+    text_box = ax1.text(0.04, 0.96, '', transform=ax1.transAxes, fontsize=small_text, verticalalignment='top',
+                        bbox=dict(boxstyle='square', facecolor='white', alpha=0.5))
+
     # update slider, set axis limits
     def update(val):
         pos = t_slider.val
         first = -1
         last = -1
         for x in range(0, len(times)):
-            if first == -1 and (times[x] - t_begin).days == math.floor(pos):
+            if first == -1 and times[x] > datetime.utcfromtimestamp(pos * DAY_SECONDS):
                 first = x
 
-            if (times[x] - t_begin).days == math.ceil(pos + 1):
+            if times[x] > datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS):
                 last = x
                 break
 
         if last == -1:
             last = len(times) - 1
 
-        t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * 24 * 60 * 60)).strftime("%Y-%m-%d %H:%M"))
+        text_box.set_text("{:.2f}kWh".format(energy[last] - energy[first]))
+        t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
         ax1.axis([pos, pos + 1, 0, max(power[first: last]) * 1.05])
         ax2.set_ylim(energy[first], energy[last] * 1.05 - energy[first] * 0.05)
         fig.canvas.draw_idle()
