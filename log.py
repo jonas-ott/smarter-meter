@@ -39,7 +39,6 @@ class Counter(object):
 
     def __init__(self):
         self.logfile = open("log/log.csv", 'a')
-        self.counter = 0
         self.hits = 0
         self.hit_time = 0
         self.none_time = 0
@@ -50,32 +49,29 @@ class Counter(object):
         self.logfile.close()
 
     def count(self):
-        if (time.clock_gettime(0) - self.none_time) > 4:
-            self.none_time = 0
-            self.hits += 1
+        self.none_time = 0
+        self.hits += 1
 
-            if self.hits == 1:
-                self.hit_time = time.clock_gettime(0)
+        if self.hits == 1:
+            self.hit_time = time.clock_gettime(0)
 
-            if self.hits > 2 and (time.clock_gettime(0) - self.hit_time) > 0.25 and not self.counted:
-                self.counted = True
-                self.counter += 1
-                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-                self.logfile.write(current_time + '\n')
+        if self.hits > 2 and (time.clock_gettime(0) - self.hit_time) > 0.25 and not self.counted:
+            self.counted = True
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            self.logfile.write(current_time + '\n')
 
-                if time.clock_gettime(0) - self.last_flush > 15 * 60:
-                    self.last_flush = time.clock_gettime(0)
-                    self.logfile.flush()
+            if time.clock_gettime(0) - self.last_flush > 15 * 60:
+                self.last_flush = time.clock_gettime(0)
+                self.logfile.flush()
 
     def none(self):
         if self.none_time == 0:
-            self.counted = False
             self.none_time = time.clock_gettime(0)
             self.hits = 0
             self.hit_time = 0
 
-    def get_count(self):
-        return self.counter
+        if (time.clock_gettime(0) - self.none_time) > 2:
+            self.counted = False
 
 
 def main():
