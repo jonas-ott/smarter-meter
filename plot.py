@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+from datetime import timedelta
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+import matplotlib.dates as mdates
 import requests
 
 # Eine Umdrehung = 1/75 kWH
@@ -35,11 +37,24 @@ def parse():
         # 1 Turn = 1000/75 Wh = 1000/75 * 60 * 60 Ws
         power.append(1000 * TURN_INC * 60 * 60 / (delta.total_seconds()))
 
+    # 3-hour moving average
+    power_avg = []
+    tail = 0
+    for head in range(0, len(times)):
+        while times[head] - times[tail] > timedelta(hours=3):
+            tail += 1
+
+        time = (times[head] - times[tail]).total_seconds()
+        if time != 0:
+            power_avg.append((head - tail) * 1000 * TURN_INC * 60 * 60 / time)
+        else:
+            power_avg.append(0)
+
     energy = []
     for x in range(0, len(power)):
         energy.append(x * TURN_INC)
 
-    return times, power, energy
+    return times, power, power_avg, energy
 
 
 # https://stackoverflow.com/a/21585524
@@ -63,7 +78,7 @@ def plot():
     small_text = 13
     big_text = 16
 
-    times, power, energy = parse()
+    times, power, power_avg, energy = parse()
 
     px = 1 / plt.rcParams['figure.dpi']
     fig, ax1 = plt.subplots(figsize=(1920 * px, 1080 * px))
@@ -73,8 +88,11 @@ def plot():
     plt.title("Stromverbrauch", fontsize=big_text)
 
     ax1.plot(times, power, drawstyle='steps', color="red")
+    ax1.plot(times, power_avg, linestyle='dashed', color="red")
     ax1.set_xlabel("Zeit", fontsize=small_text)
     ax1.set_ylabel("Leistung [W]", color="red", fontsize=small_text)
+    ax1.xaxis.set_major_formatter(
+        mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator(), show_offset=False))
     ax1.grid(True)
 
     ax2.plot(times, energy, color="blue")
