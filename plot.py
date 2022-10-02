@@ -99,7 +99,7 @@ def plot():
     plt.subplots_adjust(bottom=0.06, top=0.96, left=0.06, right=0.94)
     plt.title("Stromverbrauch Übersicht", fontsize=big_text)
 
-    ax_d.bar(days, energy_daily, color="blue")
+    ax_d.bar(days, energy_daily, align='edge', color="blue")
     ax_d.set_xlabel("Zeit", fontsize=small_text)
     ax_d.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
     ax_d.grid(True)
