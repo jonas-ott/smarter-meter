@@ -23,7 +23,6 @@ def parse():
     # im for loop muss in times.append... : "line" auf "line[:-1]" geändert werden
 
     times = []
-
     for line in lines:
         times.append(datetime.strptime(line, "%Y-%m-%d %H:%M:%S.%f"))
 
@@ -54,7 +53,21 @@ def parse():
     for x in range(0, len(power)):
         energy.append(x * TURN_INC)
 
-    return times, power, power_avg, energy
+    energy_daily = []
+    days = []
+    prev = times[0]
+    amount = TURN_INC
+    for x in times:
+        if x.day != prev.day:
+            energy_daily.append(amount)
+            days.append(prev.date())
+            amount = 0
+        prev = x
+        amount += TURN_INC
+    days.append(times[-1].date())
+    energy_daily.append(amount)
+
+    return times, power, power_avg, energy, days, energy_daily
 
 
 # https://stackoverflow.com/a/21585524
@@ -75,17 +88,28 @@ def make_format(current, other):
 
 def plot():
     plt.rcParams.update({'font.size': 12})
+    px = 1 / plt.rcParams['figure.dpi']
     small_text = 13
     big_text = 16
 
-    times, power, power_avg, energy = parse()
+    times, power, power_avg, energy, days, energy_daily = parse()
 
-    px = 1 / plt.rcParams['figure.dpi']
-    fig, ax1 = plt.subplots(figsize=(1920 * px, 1080 * px))
+    # Stromverbrauch Übersicht
+    fig_daily, ax_d = plt.subplots(figsize=(1920 * px, 1080 * px))
+    plt.subplots_adjust(bottom=0.06, top=0.96, left=0.06, right=0.94)
+    plt.title("Stromverbrauch Übersicht", fontsize=big_text)
+
+    ax_d.bar(days, energy_daily, color="blue")
+    ax_d.set_xlabel("Zeit", fontsize=small_text)
+    ax_d.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
+    ax_d.grid(True)
+
+    # Stromverbrauch Detail
+    fig_detail, ax1 = plt.subplots(figsize=(1920 * px, 1080 * px))
     plt.subplots_adjust(bottom=0.1, top=0.96, left=0.06, right=0.94)
     ax2 = ax1.twinx()
     ax2.format_coord = make_format(ax2, ax1)
-    plt.title("Stromverbrauch", fontsize=big_text)
+    plt.title("Stromverbrauch Detail", fontsize=big_text)
 
     ax1.plot(times, power, drawstyle='steps', color="red")
     ax1.plot(times, power_avg, linestyle='dashed', color="red")
@@ -126,7 +150,7 @@ def plot():
         t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
         ax1.axis([pos, pos + 1, 0, max(power[first: last]) * 1.05])
         ax2.set_ylim(energy[first], energy[last] * 1.05 - energy[first] * 0.05)
-        fig.canvas.draw_idle()
+        fig_detail.canvas.draw_idle()
 
     # set day with keys
     def on_key(event):
@@ -136,7 +160,8 @@ def plot():
             t_slider.set_val(min(t_slider.val + 1, t_slider.valmax))
         if event.key == "f5":
             plot()
-            plt.close(fig)
+            plt.close(fig_detail)
+            plt.close(fig_daily)
 
     # set day with scroll-wheel
     def on_scroll(event):
@@ -146,8 +171,8 @@ def plot():
             t_slider.set_val(min(t_slider.val + 1 / 24, t_slider.valmax))
 
     t_slider.on_changed(update)
-    fig.canvas.mpl_connect('key_press_event', on_key)
-    fig.canvas.mpl_connect('scroll_event', on_scroll)
+    fig_detail.canvas.mpl_connect('key_press_event', on_key)
+    fig_detail.canvas.mpl_connect('scroll_event', on_scroll)
 
     update(0)
     plt.show()
