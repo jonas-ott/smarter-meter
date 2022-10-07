@@ -42,7 +42,7 @@ Setup
 
 - Die Kamera sollte so ausgerichtet sein, dass das Drehrad einigermaßen mittig ist.
 - Wahrscheinlich muss der Fokus angepasst werden.
-- Evtl. muss die Status LED abgedeckt werden.
+- Die Status-LED kann mit `disable_camera_led=1` in `/boot/config.txt` deaktiviert werden.
 
 ### Kalibrieren
 
