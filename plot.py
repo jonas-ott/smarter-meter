@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from datetime import timedelta
+from datetime import time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import matplotlib.dates as mdates
@@ -9,6 +10,12 @@ import requests
 
 # Eine Umdrehung = 1/75 kWH
 TURN_INC = 1 / 75
+
+# Kosten für Zweitarif-Vertrag, bei nur einem Tarif beide Werte gleich setzen
+START_LOW = time(hour=21, minute=55)
+STOP_LOW = time(hour=5, minute=55)
+COST_HIGH = 0.3
+COST_LOW = 0.2
 
 DAY_SECONDS = 24 * 60 * 60
 
@@ -43,9 +50,9 @@ def parse():
         while times[head] - times[tail] > timedelta(hours=3):
             tail += 1
 
-        time = (times[head] - times[tail]).total_seconds()
-        if time != 0:
-            power_avg.append((head - tail) * 1000 * TURN_INC * 60 * 60 / time)
+        time_dif = (times[head] - times[tail]).total_seconds()
+        if time_dif != 0:
+            power_avg.append((head - tail) * 1000 * TURN_INC * 60 * 60 / time_dif)
         else:
             power_avg.append(0)
 
@@ -54,20 +61,31 @@ def parse():
         energy.append(x * TURN_INC)
 
     energy_daily = []
+    cost_daily = []
     days = []
     prev = times[0]
-    amount = TURN_INC
+    counter_energy = TURN_INC
+    counter_cost = TURN_INC * COST_HIGH
     for x in times:
         if x.day != prev.day:
-            energy_daily.append(amount)
+            energy_daily.append(counter_energy)
+            cost_daily.append(counter_cost)
             days.append(prev.date())
-            amount = 0
-        prev = x
-        amount += TURN_INC
-    days.append(times[-1].date())
-    energy_daily.append(amount)
+            counter_energy = 0
+            counter_cost = 0
 
-    return times, power, power_avg, energy, days, energy_daily
+        if x.time() > START_LOW or x.time() < STOP_LOW:
+            counter_cost += TURN_INC * COST_LOW
+        else:
+            counter_cost += TURN_INC * COST_HIGH
+
+        counter_energy += TURN_INC
+        prev = x
+    days.append(times[-1].date())
+    energy_daily.append(counter_energy)
+    cost_daily.append(counter_cost)
+
+    return times, power, power_avg, energy, days, energy_daily, cost_daily
 
 
 # https://stackoverflow.com/a/21585524
@@ -92,17 +110,27 @@ def plot():
     small_text = 13
     big_text = 16
 
-    times, power, power_avg, energy, days, energy_daily = parse()
+    times, power, power_avg, energy, days, energy_daily, cost_daily = parse()
+
+    # Kosten Übersicht
+    fig_cost, ax_c = plt.subplots(figsize=(1920 * px, 1080 * px))
+    plt.subplots_adjust(bottom=0.06, top=0.96, left=0.06, right=0.94)
+    plt.title("Kosten Übersicht", fontsize=big_text)
+
+    ax_c.bar(days, cost_daily, color="red")
+    ax_c.set_xlabel("Zeit", fontsize=small_text)
+    ax_c.set_ylabel("Kosten [€]", color="red", fontsize=small_text)
+    ax_c.grid(True)
 
     # Stromverbrauch Übersicht
-    fig_daily, ax_d = plt.subplots(figsize=(1920 * px, 1080 * px))
+    fig_energy, ax_e = plt.subplots(figsize=(1920 * px, 1080 * px))
     plt.subplots_adjust(bottom=0.06, top=0.96, left=0.06, right=0.94)
     plt.title("Stromverbrauch Übersicht", fontsize=big_text)
 
-    ax_d.bar(days, energy_daily, align='edge', color="blue")
-    ax_d.set_xlabel("Zeit", fontsize=small_text)
-    ax_d.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
-    ax_d.grid(True)
+    ax_e.bar(days, energy_daily, color="blue")
+    ax_e.set_xlabel("Zeit", fontsize=small_text)
+    ax_e.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
+    ax_e.grid(True)
 
     # Stromverbrauch Detail
     fig_detail, ax1 = plt.subplots(figsize=(1920 * px, 1080 * px))
@@ -160,8 +188,9 @@ def plot():
             t_slider.set_val(min(t_slider.val + 1, t_slider.valmax))
         if event.key == "f5":
             plot()
+            plt.close(fig_cost)
             plt.close(fig_detail)
-            plt.close(fig_daily)
+            plt.close(fig_energy)
 
     # set day with scroll-wheel
     def on_scroll(event):
