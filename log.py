@@ -55,7 +55,7 @@ class Counter(object):
         if self.hits == 1:
             self.hit_time = time.clock_gettime(0)
 
-        if self.hits > 2 and (time.clock_gettime(0) - self.hit_time) > 0.25 and not self.counted:
+        if self.hits >= 2 and (time.clock_gettime(0) - self.hit_time) > 0.1 and not self.counted:
             self.counted = True
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
             self.logfile.write(current_time + '\n')
