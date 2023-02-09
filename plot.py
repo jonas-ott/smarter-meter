@@ -109,6 +109,10 @@ def plot():
     ax_c.set_ylabel("Kosten [€]", color="red", fontsize=small_text)
     ax_c.grid(True)
 
+    ax_c.text(0.04, 0.96, "{:.2f}€".format(sum(cost_daily)), transform=ax_c.transAxes, fontsize=small_text,
+              verticalalignment='top',
+              bbox=dict(boxstyle='square', facecolor='white', alpha=0.5))
+
     # Stromverbrauch Übersicht
     fig_energy, ax_e = plt.subplots(figsize=(1920 * px, 1080 * px))
     plt.subplots_adjust(bottom=0.06, top=0.96, left=0.06, right=0.94)
@@ -118,6 +122,11 @@ def plot():
     ax_e.set_xlabel("Zeit", fontsize=small_text)
     ax_e.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
     ax_e.grid(True)
+
+    ax_e.text(0.04, 0.96, "{:.1f}kWh".format(sum(energy_daily)), transform=ax_e.transAxes,
+              fontsize=small_text,
+              verticalalignment='top',
+              bbox=dict(boxstyle='square', facecolor='white', alpha=0.5))
 
     # Stromverbrauch Detail
     fig_detail, ax1 = plt.subplots(figsize=(1920 * px, 1080 * px))
