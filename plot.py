@@ -43,19 +43,6 @@ def parse():
         # 1 Turn = 1000/75 Wh = 1000/75 * 60 * 60 Ws
         power.append(1000 * TURN_INC * 60 * 60 / (delta.total_seconds()))
 
-    # 3-hour moving average
-    power_avg = []
-    tail = 0
-    for head in range(0, len(times)):
-        while times[head] - times[tail] > timedelta(hours=3):
-            tail += 1
-
-        time_dif = (times[head] - times[tail]).total_seconds()
-        if time_dif != 0:
-            power_avg.append((head - tail) * 1000 * TURN_INC * 60 * 60 / time_dif)
-        else:
-            power_avg.append(0)
-
     energy = []
     for x in range(0, len(power)):
         energy.append(x * TURN_INC)
@@ -85,7 +72,7 @@ def parse():
     energy_daily.append(counter_energy)
     cost_daily.append(counter_cost)
 
-    return times, power, power_avg, energy, days, energy_daily, cost_daily
+    return times, power, energy, days, energy_daily, cost_daily
 
 
 # https://stackoverflow.com/a/21585524
@@ -110,7 +97,7 @@ def plot():
     small_text = 13
     big_text = 16
 
-    times, power, power_avg, energy, days, energy_daily, cost_daily = parse()
+    times, power, energy, days, energy_daily, cost_daily = parse()
 
     # Kosten Übersicht
     fig_cost, ax_c = plt.subplots(figsize=(1920 * px, 1080 * px))
@@ -140,7 +127,6 @@ def plot():
     plt.title("Stromverbrauch Detail", fontsize=big_text)
 
     ax1.plot(times, power, drawstyle='steps', color="red")
-    ax1.plot(times, power_avg, linestyle='dashed', color="red")
     ax1.set_xlabel("Zeit", fontsize=small_text)
     ax1.set_ylabel("Leistung [W]", color="red", fontsize=small_text)
     ax1.xaxis.set_major_formatter(
