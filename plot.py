@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
-from datetime import timedelta
-from datetime import time
+from datetime import datetime, time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import matplotlib.dates as mdates
 import requests
 
-# Eine Umdrehung = 1/75 kWH
+# Eine Umdrehung = 1/75 kWh
 TURN_INC = 1 / 75
 
 # Kosten für Zweitarif-Vertrag, bei nur einem Tarif beide Werte gleich setzen
