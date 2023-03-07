@@ -79,3 +79,26 @@ Optional:
 Nun ist alles fertig, sobald es genug Messungen gibt, können alle Werte mit `python plot.py`
 eingesehen werden. Mit Mausrad und Pfeiltasten kann durch die Zeit navigiert werden.
 Mit `F5` können die Werte aktualisiert werden.
+
+### Home Assistant
+
+Per MQTT kann die aktuelle Leistung an ein Broker geschickt werden und in Home Assistant mit folgender Konfiguration integriert werden:
+
+```YAML
+# Smarter-Meter
+mqtt:
+  sensor:
+    - name: "Smarter-Meter Power"
+      state_topic: "smarter-meter/power"
+      device_class: "power"
+      state_class: "measurement"
+      unit_of_measurement: "W"
+
+sensor:
+  - platform: integration
+    source: sensor.smarter_meter_power
+    name: "Smarter-Meter Energy"
+    unit_prefix: k
+    round: 2
+    method: "left"
+```

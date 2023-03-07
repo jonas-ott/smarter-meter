@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 from picamera2 import Picamera2
+import paho.mqtt.client as mqtt
 
 # Adjust as necessary
 MIN_AREA = 1500
@@ -21,6 +22,10 @@ S_MIN = 108
 S_MAX = 216
 V_MIN = 45
 V_MAX = 128
+
+MQTT_BROKER = "192.168.178.39"
+MQTT_TOPIC = "smarter-meter/power"
+TURN_INC = 1 / 75
 
 
 # https://stackoverflow.com/a/31464349
@@ -44,6 +49,9 @@ class Counter(object):
         self.none_time = 0
         self.counted = False
         self.last_flush = 0
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.connect(MQTT_BROKER, 1883, 3600)
+        self.last_time = datetime.min
 
     def __del__(self):
         self.logfile.close()
@@ -55,9 +63,13 @@ class Counter(object):
         if self.hits == 1:
             self.hit_time = time.clock_gettime(0)
 
-        if self.hits >= 2 and (time.clock_gettime(0) - self.hit_time) > 0.1 and not self.counted:
+        if self.hits >= 1 and (time.clock_gettime(0) - self.hit_time) > 0.05 and not self.counted:
             self.counted = True
-            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            now = datetime.now()
+            power = int(1000 * TURN_INC * 60 * 60 / (now - self.last_time).total_seconds())
+            self.mqtt_client.publish(MQTT_TOPIC, power)
+            self.last_time = now
+            current_time = now.strftime('%Y-%m-%d %H:%M:%S.%f')
             self.logfile.write(current_time + '\n')
 
             if time.clock_gettime(0) - self.last_flush > 15 * 60:
