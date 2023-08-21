@@ -82,23 +82,22 @@ Mit `F5` können die Werte aktualisiert werden.
 
 ### Home Assistant
 
-Per MQTT kann die aktuelle Leistung an ein Broker geschickt werden und in Home Assistant mit folgender Konfiguration integriert werden:
+Per MQTT kann die aktuelle Leistung an ein Broker geschickt werden und mit folgender Konfiguration in Home Assistant integriert werden:
 
 ```YAML
 # Smarter-Meter
 mqtt:
   sensor:
+    - name: "Smarter-Meter Energy"
+      state_topic: "smarter-meter/energy"
+      device_class: "energy"
+      state_class: "total_increasing"
+      unit_of_measurement: "kWh"
     - name: "Smarter-Meter Power"
       state_topic: "smarter-meter/power"
       device_class: "power"
       state_class: "measurement"
       unit_of_measurement: "W"
-
-sensor:
-  - platform: integration
-    source: sensor.smarter_meter_power
-    name: "Smarter-Meter Energy"
-    unit_prefix: k
-    round: 2
-    method: "left"
 ```
+
+in `log.py` muss die IP des MQTT-Brokers angepasst werden.

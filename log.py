@@ -24,7 +24,7 @@ V_MIN = 45
 V_MAX = 128
 
 MQTT_BROKER = "192.168.178.39"
-MQTT_TOPIC = "smarter-meter/power"
+MQTT_TOPIC = "smarter-meter/"
 TURN_INC = 1 / 75
 
 
@@ -43,6 +43,11 @@ class GracefulKiller:
 class Counter(object):
 
     def __init__(self):
+        # get total energy consumption
+        self.logfile = open("log/log.csv", 'r')
+        self.lines = len(self.logfile.readlines())
+        self.logfile.close()
+
         self.logfile = open("log/log.csv", 'a')
         self.hits = 0
         self.hit_time = 0
@@ -51,10 +56,12 @@ class Counter(object):
         self.last_flush = 0
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect(MQTT_BROKER, 1883, 3600)
+        self.mqtt_client.loop_start()
         self.last_time = datetime.min
 
     def __del__(self):
         self.logfile.close()
+        self.mqtt_client.loop_stop()
 
     def count(self):
         self.none_time = 0
@@ -66,8 +73,12 @@ class Counter(object):
         if self.hits >= 1 and (time.clock_gettime(0) - self.hit_time) > 0.05 and not self.counted:
             self.counted = True
             now = datetime.now()
+
             power = int(1000 * TURN_INC * 60 * 60 / (now - self.last_time).total_seconds())
-            self.mqtt_client.publish(MQTT_TOPIC, power)
+            self.mqtt_client.publish(MQTT_TOPIC + "power", power)
+            self.lines += 1
+            self.mqtt_client.publish(MQTT_TOPIC + "energy", round(self.lines * TURN_INC, 2))
+
             self.last_time = now
             current_time = now.strftime('%Y-%m-%d %H:%M:%S.%f')
             self.logfile.write(current_time + '\n')
