@@ -23,9 +23,10 @@ S_MAX = 216
 V_MIN = 45
 V_MAX = 128
 
-MQTT_BROKER = "192.168.178.39"
+# MQTT Einstellung
+MQTT_BROKER = None  # Broker (IP-)Adresse
 MQTT_TOPIC = "smarter-meter/"
-TURN_INC = 1 / 75
+TURN_INC = 1 / 75  # Eine Umdrehung = 1/75 kWh
 
 
 # https://stackoverflow.com/a/31464349
@@ -54,9 +55,10 @@ class Counter(object):
         self.none_time = 0
         self.counted = False
         self.last_flush = 0
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.connect(MQTT_BROKER, 1883, 3600)
-        self.mqtt_client.loop_start()
+        if MQTT_BROKER is not None:
+            self.mqtt_client = mqtt.Client()
+            self.mqtt_client.connect(MQTT_BROKER, 1883, 3600)
+            self.mqtt_client.loop_start()
         self.last_time = datetime.min
 
     def __del__(self):
@@ -75,9 +77,10 @@ class Counter(object):
             now = datetime.now()
 
             power = int(1000 * TURN_INC * 60 * 60 / (now - self.last_time).total_seconds())
-            self.mqtt_client.publish(MQTT_TOPIC + "power", power)
-            self.lines += 1
-            self.mqtt_client.publish(MQTT_TOPIC + "energy", round(self.lines * TURN_INC, 2))
+            if MQTT_BROKER is not None:
+                self.mqtt_client.publish(MQTT_TOPIC + "power", power)
+                self.lines += 1
+                self.mqtt_client.publish(MQTT_TOPIC + "energy", round(self.lines * TURN_INC, 2))
 
             self.last_time = now
             current_time = now.strftime('%Y-%m-%d %H:%M:%S.%f')

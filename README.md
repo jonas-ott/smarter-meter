@@ -1,10 +1,9 @@
 Was?
 ----
 Wer noch keinen Smart Meter hat, aber dennoch den aktuellen Verbrauch auslesen will,
-kann dies hiermit machen.
+kann dies hiermit machen. Mit Home Assistant support über MQTT.
 
-Das Projekt habe ich hauptsächlich für mich gemacht.
-Die Dokumentation ist daher keine Schritt-für-Schritt-Anleitung und kann Fehler enthalten.
+Die Dokumentation ist keine vollständige Schritt-für-Schritt-Anleitung, sollte aber nachvollziehbar sein.
 
 ![Beispiel: Stromverbrauch an einem Tag](images/plot.png)
 
@@ -100,4 +99,4 @@ mqtt:
       unit_of_measurement: "W"
 ```
 
-in `log.py` muss die IP des MQTT-Brokers angepasst werden.
+In `log.py` muss dafür die IP des MQTT-Brokers angepasst und der gleiche Wert wie in `plot.csv` für `TURN_INC``eingetragen werden. 
