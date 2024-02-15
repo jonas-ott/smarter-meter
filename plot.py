@@ -157,10 +157,10 @@ def plot():
         first = -1
         last = -1
         for x in range(0, len(times)):
-            if first == -1 and times[x] > datetime.utcfromtimestamp(pos * DAY_SECONDS):
-                first = x
-
-            if times[x] > datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS):
+            if first == -1:
+                if times[x] > datetime.utcfromtimestamp(pos * DAY_SECONDS):
+                    first = x
+            elif times[x] > datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS):
                 last = x
                 break
 
