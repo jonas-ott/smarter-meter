@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from bisect import bisect
 from datetime import datetime, time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
@@ -154,18 +155,9 @@ def plot():
     # update slider, set axis limits
     def update(val):
         pos = t_slider.val
-        first = -1
-        last = -1
-        for x in range(0, len(times)):
-            if first == -1:
-                if times[x] > datetime.utcfromtimestamp(pos * DAY_SECONDS):
-                    first = x
-            elif times[x] > datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS):
-                last = x
-                break
-
-        if last == -1:
-            last = len(times) - 1
+        first = bisect(times, datetime.utcfromtimestamp(pos * DAY_SECONDS))
+        last = bisect(times, datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS))
+        last = min(last, len(times) - 1)
 
         text_box.set_text("{:.2f}kWh".format(energy[last] - energy[first]))
         t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
