@@ -145,7 +145,7 @@ def plot():
     ax2.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
 
     t_begin = datetime.utcfromtimestamp(0)
-    t_slider = Slider(plt.axes([0.06, 0.02, 0.78, 0.03]), '', (times[0] - t_begin).days, (times[-1] - t_begin).days,
+    t_slider = Slider(plt.axes((0.06, 0.02, 0.78, 0.03)), '', (times[0] - t_begin).days, (times[-1] - t_begin).days,
                       valinit=(times[-1] - t_begin).days,
                       valstep=1 / 24)
 
@@ -156,7 +156,7 @@ def plot():
     def update(val):
         pos = t_slider.val
         first = bisect(times, datetime.utcfromtimestamp(pos * DAY_SECONDS))
-        last = bisect(times, datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS))
+        last = bisect(times, datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS), lo=first)
         last = min(last, len(times) - 1)
 
         text_box.set_text("{:.2f}kWh".format(energy[last] - energy[first]))
