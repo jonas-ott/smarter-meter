@@ -85,7 +85,7 @@ def make_format(current, other):
         inv = other.transData.inverted()
         # convert back to data coords with respect to ax
         ax_coord = inv.transform(display_coord)
-        return f'Leistung: {ax_coord[1]:.0f}W   Verbrauch: {y:.2f}kWh   Zeit: {datetime.utcfromtimestamp(x * DAY_SECONDS):%H:%M:%S}'
+        return f'Leistung: {ax_coord[1]:.0f}W   Verbrauch: {y:.2f}kWh   Zeit: {datetime.fromtimestamp(x * DAY_SECONDS):%H:%M:%S}'
 
     return format_coord
 
@@ -144,7 +144,7 @@ def plot():
     ax2.plot(times, energy, color="blue")
     ax2.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
 
-    t_begin = datetime.utcfromtimestamp(0)
+    t_begin = datetime.fromtimestamp(0)
     t_slider = Slider(plt.axes((0.06, 0.02, 0.78, 0.03)), '', (times[0] - t_begin).days, (times[-1] - t_begin).days,
                       valinit=(times[-1] - t_begin).days,
                       valstep=1 / 24)
@@ -155,12 +155,12 @@ def plot():
     # update slider, set axis limits
     def update(val):
         pos = t_slider.val
-        first = bisect(times, datetime.utcfromtimestamp(pos * DAY_SECONDS))
-        last = bisect(times, datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS), lo=first)
+        first = bisect(times, datetime.fromtimestamp(pos * DAY_SECONDS))
+        last = bisect(times, datetime.fromtimestamp((pos + 1) * DAY_SECONDS), lo=first)
         last = min(last, len(times) - 1)
 
         text_box.set_text(f"{energy[last] - energy[first]:.2f}kWh")
-        t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
+        t_slider.valtext.set_text(datetime.fromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
         ax1.axis([pos, pos + 1, 0, max(power[first: last]) * 1.05])
         ax2.set_ylim(energy[first], energy[last] * 1.05 - energy[first] * 0.05)
         fig_detail.canvas.draw_idle()
