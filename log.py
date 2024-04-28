@@ -45,9 +45,11 @@ class Counter(object):
 
     def __init__(self):
         # get total energy consumption
-        self.logfile = open("log/log.csv", 'r')
-        self.lines = len(self.logfile.readlines())
-        self.logfile.close()
+        try:
+            with open("log/log.csv", 'r') as file:
+                self.lines = len(file.readlines())
+        except OSError:
+            self.lines = 0
 
         self.logfile = open("log/log.csv", 'a')
         self.hits = 0
@@ -63,7 +65,8 @@ class Counter(object):
 
     def __del__(self):
         self.logfile.close()
-        self.mqtt_client.loop_stop()
+        if MQTT_BROKER is not None:
+            self.mqtt_client.loop_stop()
 
     def count(self):
         self.none_time = 0
