@@ -2,10 +2,11 @@
 
 from bisect import bisect
 from datetime import datetime, time
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
+
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import requests
+from matplotlib.widgets import Slider
 
 # Eine Umdrehung = 1/75 kWh
 TURN_INC = 1 / 75
@@ -84,8 +85,7 @@ def make_format(current, other):
         inv = other.transData.inverted()
         # convert back to data coords with respect to ax
         ax_coord = inv.transform(display_coord)
-        return 'Leistung: {:.0f}W   Verbrauch: {:.2f}kWh   Zeit: {}' \
-            .format(ax_coord[1], y, datetime.utcfromtimestamp(x * DAY_SECONDS).strftime('%H:%M:%S'))
+        return f'Leistung: {ax_coord[1]:.0f}W   Verbrauch: {y:.2f}kWh   Zeit: {datetime.utcfromtimestamp(x * DAY_SECONDS):%H:%M:%S}'
 
     return format_coord
 
@@ -108,7 +108,7 @@ def plot():
     ax_c.set_ylabel("Kosten [€]", color="red", fontsize=small_text)
     ax_c.grid(True)
 
-    ax_c.text(0.04, 0.96, "{:.2f}€".format(sum(cost_daily)), transform=ax_c.transAxes, fontsize=small_text,
+    ax_c.text(0.04, 0.96, f"{sum(cost_daily):.2f}€", transform=ax_c.transAxes, fontsize=small_text,
               verticalalignment='top',
               bbox=dict(boxstyle='square', facecolor='white', alpha=0.5))
 
@@ -122,7 +122,7 @@ def plot():
     ax_e.set_ylabel("Energie [kWh]", color="blue", fontsize=small_text)
     ax_e.grid(True)
 
-    ax_e.text(0.04, 0.96, "{:.1f}kWh".format(sum(energy_daily)), transform=ax_e.transAxes,
+    ax_e.text(0.04, 0.96, f"{sum(energy_daily):.1f}kWh", transform=ax_e.transAxes,
               fontsize=small_text,
               verticalalignment='top',
               bbox=dict(boxstyle='square', facecolor='white', alpha=0.5))
@@ -159,7 +159,7 @@ def plot():
         last = bisect(times, datetime.utcfromtimestamp((pos + 1) * DAY_SECONDS), lo=first)
         last = min(last, len(times) - 1)
 
-        text_box.set_text("{:.2f}kWh".format(energy[last] - energy[first]))
+        text_box.set_text(f"{energy[last] - energy[first]:.2f}kWh")
         t_slider.valtext.set_text(datetime.utcfromtimestamp(round(pos * DAY_SECONDS)).strftime("%Y-%m-%d %H:%M"))
         ax1.axis([pos, pos + 1, 0, max(power[first: last]) * 1.05])
         ax2.set_ylim(energy[first], energy[last] * 1.05 - energy[first] * 0.05)
