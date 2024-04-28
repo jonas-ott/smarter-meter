@@ -7,7 +7,6 @@ Die Dokumentation ist keine vollständige Schritt-für-Schritt-Anleitung, sollte
 
 ![Beispiel: Stromverbrauch an einem Tag](images/plot.png)
 
-
 Wie?
 ---
 Mit einer an einem Raspberry Pi angeschlossen Kamera wird
@@ -15,7 +14,6 @@ das sich drehende Rad des Stromzählers gefilmt.
 Mithilfe von OpenCV wird die rote Markierung, welche eine Umdrehung markiert,
 erkannt und der Zeitpunkt mitgeschrieben. Daraus lässt sich der Energieverbrauch
 und Leistung berechnen und mit matplotlib ploten.
-
 
 Setup
 -----
@@ -33,8 +31,7 @@ Setup
 
 - Raspberry Pi mit `Raspberry Pi OS 64bit` (bei 32Bit muss OpenCV kompiliert werden,
   ein Desktop sollte nicht zwingend erforderlich sein).
-- `pip install opencv-contrib-python`
-- [picamera2](https://github.com/raspberrypi/picamera2#installation)
+- `sudo apt install python3-opencv python3-picamera2 python3-paho-mqtt`
 - Auf dem System auf dem die Daten eingesehen werden sollen: `pip install matplotlib`
 
 ### Kamera
